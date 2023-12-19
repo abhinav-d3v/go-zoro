@@ -20,6 +20,8 @@ func AbiTypeResolver(solidityDataType string) string {
 		return "big.Int"
 	case "address":
 		return "common.Address"
+	case "bytes32":
+		return "[]byte"
 	}
 
 	return solidityDataType
