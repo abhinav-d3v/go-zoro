@@ -1,10 +1,10 @@
 package main
 
 type Inputs struct {
-	Name       string `json:"name"`
-	Type       string `json:"type"`
-	Components string `json:"components"`
-	Indexed    bool   `json:"indexed"`
+	Name       string    `json:"name"`
+	Type       string    `json:"type"`
+	Components []Outputs `json:"components"`
+	Indexed    bool      `json:"indexed"`
 }
 
 type Outputs struct {
