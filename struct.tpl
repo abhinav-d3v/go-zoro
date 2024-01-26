@@ -14,5 +14,10 @@ switch event.Name {
       {{$input.Name | title}} :{{ if eq $input.Type "common.Address"}} common.HexToAddress(vLog.Topics[{{$index | add1 }}]) {{else if eq $input.Type "big.Int"}} vLog.Topics[{{$index | add1}}].(*bigInt), {{end}}
       {{- end}}
     }
+  
+
+    // do stuff
+
+    return
   {{ end}}
 }
