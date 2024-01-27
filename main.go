@@ -11,7 +11,11 @@ import (
 )
 
 const (
-	Event = "event"
+	Event        = "event"
+	FetchLogData = `decodeLog, err := contractABI.Unpack(event.Name, vLog.Data)
+		if err != nil {
+			log.Fatal("unable to decode log")
+		}`
 )
 
 func AbiTypeResolver(solidityDataType string) string {
@@ -25,6 +29,14 @@ func AbiTypeResolver(solidityDataType string) string {
 	}
 
 	return solidityDataType
+}
+func CreateIndxedType(golangDataType string) string {
+	switch golangDataType {
+	case "common.Address":
+		return "common.HexToAddress"
+	}
+	return ""
+
 }
 func main() {
 	fileContent, err := os.ReadFile("test.json")
@@ -40,26 +52,73 @@ func main() {
 	if err != nil {
 		log.Fatal("Not Working", err.Error())
 	}
+	/*
 
-	contractEvents := []Abi{}
-
+	  {
+	    "anonymous": false,
+	    "inputs": [
+	      {
+	        "indexed": true,
+	        "internalType": "bytes32",
+	        "name": "role",
+	        "type": "bytes32"
+	      },
+	      {
+	        "indexed": true,
+	        "internalType": "address",
+	        "name": "account",
+	        "type": "address"
+	      },
+	      {
+	        "indexed": true,
+	        "internalType": "address",
+	        "name": "sender",
+	        "type": "address"
+	      }
+	    ],
+	    "name": "RoleGranted",
+	    "type": "event"
+	  },
+	*/
+	renderEvent := []RenderEvent{}
 	for _, obj := range abiDump {
 		if obj.Type == Event {
-			for i := 0; i < len(obj.Inputs); i++ {
-				obj.Inputs[i].Type = AbiTypeResolver(obj.Inputs[i].Type)
+			logDataIndex := 0
+			topicIndex := 1
+			event := RenderEvent{Name: obj.Name, Inputs: []RenderInput{}}
+			for _, contractEvent := range obj.Inputs {
+				eventInput := RenderInput{
+					Name: contractEvent.Name,
+					Type: AbiTypeResolver(contractEvent.Type),
+				}
+				if contractEvent.Indexed {
+					createArg := CreateIndxedType(eventInput.Type)
+					eventInput.FetchFrom = fmt.Sprintf("vLog.Topics[%d]", topicIndex)
+					topicIndex++
+					eventInput.InitValue = fmt.Sprintf("%s(%s)", createArg, eventInput.FetchFrom)
+				} else {
+
+					createArg := fmt.Sprintf("decodeLog[%d].(*%s)", logDataIndex, eventInput.Type)
+					logDataIndex++
+					eventInput.InitValue = createArg
+				}
+				event.Inputs = append(event.Inputs, eventInput)
 			}
-			contractEvents = append(contractEvents, obj)
+			if logDataIndex > 0 {
+				event.IsFetchLogData = true
+			}
+			renderEvent = append(renderEvent, event)
 		}
 	}
-
 	tmpl, err := template.New("struct.tpl").Funcs(sprig.FuncMap()).ParseFiles("struct.tpl")
+
 	if err != nil {
 		log.Fatal("Unable to fetch template file", err.Error())
 	}
 
-	err = tmpl.Execute(os.Stdout, contractEvents)
+	err = tmpl.Execute(os.Stdout, renderEvent)
+
 	if err != nil {
 		log.Fatal("Unable to Execute", err.Error())
 	}
-
 }

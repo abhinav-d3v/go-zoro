@@ -20,3 +20,16 @@ type Abi struct {
 	StateMutability string    `json:"stateMutability"`
 	Type            string    `json:"type"`
 }
+
+type RenderInput struct {
+	Name      string
+	Type      string
+	FetchFrom string
+	InitValue string
+}
+
+type RenderEvent struct {
+	Name           string
+	Inputs         []RenderInput
+	IsFetchLogData bool
+}

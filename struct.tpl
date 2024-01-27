@@ -9,9 +9,15 @@ type {{ .Name }} struct {
 switch event.Name {
   {{- range .}}
   case "{{- .Name}}":
+    {{ if .IsFetchLogData}}
+    decodeLog, err := contractABI.Unpack(event.Name, vLog.Data)
+    if err != nil {
+      log.Fatal("unable to decode log")
+    }
+    {{end}}
     {{.Name | snakecase}} := {{.Name}}{
-      {{- range $index, $input := .Inputs}}  
-      {{$input.Name | title}} :{{ if eq $input.Type "common.Address"}} common.HexToAddress(vLog.Topics[{{$index | add1 }}]) {{else if eq $input.Type "big.Int"}} vLog.Topics[{{$index | add1}}].(*bigInt), {{end}}
+      {{- range .Inputs}}
+        {{.Name | title}} : {{.InitValue}},
       {{- end}}
     }
   
@@ -19,5 +25,7 @@ switch event.Name {
     // do stuff
 
     return
-  {{ end}}
+  {{end}}
 }
+
+
