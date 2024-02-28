@@ -21,7 +21,7 @@ const (
 func AbiTypeResolver(solidityDataType string) string {
 	switch solidityDataType {
 	case "uint256":
-		return "big.Int"
+		return "*big.Int"
 	case "address":
 		return "common.Address"
 	case "bytes32":
@@ -34,6 +34,8 @@ func CreateIndxedType(golangDataType string) string {
 	switch golangDataType {
 	case "common.Address":
 		return "common.HexToAddress"
+	case "*big.Int":
+		return "new(big.Int).SetBytes"
 	}
 	return ""
 
@@ -98,7 +100,7 @@ func main() {
 					eventInput.InitValue = fmt.Sprintf("%s(%s)", createArg, eventInput.FetchFrom)
 				} else {
 
-					createArg := fmt.Sprintf("decodeLog[%d].(*%s)", logDataIndex, eventInput.Type)
+					createArg := fmt.Sprintf("decodeLog[%d].(%s)", logDataIndex, eventInput.Type)
 					logDataIndex++
 					eventInput.InitValue = createArg
 				}

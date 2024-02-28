@@ -10,7 +10,7 @@ go-zoro is a Go package designed to simplify the process of dynamically creating
 
 | Solidity  | Golang         |
 |-----------|----------------|
-| uint256   | bigInt         |
+| uint256   | *bigInt        |
 | address   | common.address |
 
 ## Quick start
